@@ -13,7 +13,7 @@ import com.yanjiuyanjiu.ml.vector.Vector;
 /**
  * 主程序.
  *
- * @author 方勤
+ * @author soulmachine@gmail.com
  *
  */
 public final class Clustering {

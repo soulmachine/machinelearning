@@ -6,7 +6,7 @@ import org.apache.mahout.math.map.OpenIntDoubleHashMap;
 /**
  * 向量的稀疏表示, immutable.
  *
- * @author 方勤
+ * @author soulmachine@gmail.com
  *
  */
 public class SparseVector extends AbstractVector {

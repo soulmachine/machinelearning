@@ -5,8 +5,8 @@ import java.util.Set;
 
 /**
  * 停用词处理.
- * 
- * @author 戴方勤
+ *
+ * @author soulmachine@gmail.com
  */
 public final class StopWordsHandler {
 	/** 禁止实例化. */
@@ -33,7 +33,7 @@ public final class StopWordsHandler {
 
 	/**
 	 * 判断一个词是否是停止词.
-	 * 
+	 *
 	 * @param word
 	 *            要判断的词
 	 * @return 是停止词，返回true，否则返回false

@@ -7,7 +7,7 @@ import java.util.Locale;
 /**
  * 英文分词.
  *
- * @author 方勤
+ * @author soulmachine@gmail.com
  *
  */
 public final class TextSegmentation {

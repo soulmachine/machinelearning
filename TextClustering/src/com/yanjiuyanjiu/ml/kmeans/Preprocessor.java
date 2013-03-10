@@ -28,7 +28,7 @@ import com.yanjiuyanjiu.ml.vector.Vector;
 /**
  * 预处理，获取基本数据，例如单词表，文本向量等.
  *
- * @author 戴方勤
+ * @author soulmachine@gmail.com
  *
  */
 public final class Preprocessor {

@@ -47,9 +47,9 @@ public abstract class AbstractVector implements Vector {
 	 * @return 内积
 	 */
 	@Override
-	public final double distance(final Vector v) {
-		final double cosine = this.dotProduct(v)
-				/ (this.magnitude * v.magnitude());
+	public final double distance(final Vector vector) {
+		final double cosine = this.dotProduct(vector)
+				/ (this.magnitude * vector.magnitude());
 		return 2 * (1 - cosine);
 	}
 }

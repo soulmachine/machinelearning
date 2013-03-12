@@ -15,6 +15,9 @@ import java.util.logging.SimpleFormatter;
 import org.apache.mahout.math.list.IntArrayList;
 import org.apache.mahout.math.set.OpenIntHashSet;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.yanjiuyanjiu.ml.vector.Vector;
 
 /**
@@ -51,7 +54,7 @@ public class KMeans {
 	/** 终止迭代的阀值，当类别发生变化的点的数目小于0.05*总数时，终止迭代. */
 	private final int threshold;
 	/** 文本向量. */
-	private final Vector[] vectors;
+	private final ImmutableList<Vector> vectors;
 	/** 每个文本向量所属于的组，与vectors一一对应，联系 vectors和groups的桥梁. */
 	private final int[] belongedGroup;
 	// /** 每个点到最近中心点的距离. */
@@ -105,8 +108,8 @@ public class KMeans {
 		 *            成员
 		 * @return 操作是否成功
 		 */
-		public boolean addMember(final int m) {
-			return members.add(m);
+		public boolean addMember(final int member) {
+			return members.add(member);
 		}
 
 		/**
@@ -116,8 +119,8 @@ public class KMeans {
 		 *            成员
 		 * @return 操作是否成功
 		 */
-		public boolean removeMember(final int m) {
-			return members.remove(m);
+		public boolean removeMember(final int member) {
+			return members.remove(member);
 		}
 	}
 
@@ -140,7 +143,7 @@ public class KMeans {
 		for (int i = 0; i < keys.size(); i++) {
 			final int m = keys.get(i);
 			for (int j = 0; j < n; j++) {
-				builder.set(j, builder.get(j) + vectors[m].get(j));
+				builder.set(j, builder.get(j) + vectors.get(m).get(j));
 			}
 		}
 
@@ -158,14 +161,14 @@ public class KMeans {
 	 * @param vectors
 	 *            所有的文本向量
 	 */
-	public KMeans(final double threshold, final Vector[] vectors) {
-		this.threshold = (int) (threshold * vectors.length);
+	public KMeans(final double threshold, final ImmutableList<Vector> vectors) {
+		this.threshold = (int) (threshold * vectors.size());
 		this.vectors = vectors;
-		this.belongedGroup = new int[vectors.length];
+		this.belongedGroup = new int[vectors.size()];
 		java.util.Arrays.fill(belongedGroup, -1);
 
-		this.distanceToCenter = new double[vectors.length][];
-		for (int i = 0; i < vectors.length; i++) {
+		this.distanceToCenter = new double[vectors.size()][];
+		for (int i = 0; i < vectors.size(); i++) {
 			distanceToCenter[i] = new double[K];
 			java.util.Arrays.fill(distanceToCenter[i], -1);
 		}
@@ -178,20 +181,20 @@ public class KMeans {
 		int i = 0;
 		final Iterator<Integer> iter = seeds.iterator();
 		while (iter.hasNext()) {
-			groups[i++] = new Group(vectors[iter.next()]);
+			groups[i++] = new Group(vectors.get(iter.next()));
 		}
 		assert (i == groups.length);
 
 		// 计算点到中心的距离
-		for (i = 0; i < vectors.length; i++) {
+		for (i = 0; i < vectors.size(); i++) {
 			for (int j = 0; j < groups.length; j++) {
-				distanceToCenter[i][j] = vectors[i].distance(groups[j]
+				distanceToCenter[i][j] = vectors.get(i).distance(groups[j]
 						.getCenter());
 			}
 		}
 
 		// 将样本随机分配到每个群
-		final int[] indexes = new int[vectors.length];
+		final int[] indexes = new int[vectors.size()];
 		for (i = 0; i < indexes.length; i++) {
 			indexes[i] = i;
 		}
@@ -203,7 +206,7 @@ public class KMeans {
 			indexes[j] = temp;
 		}
 		// 每个组分到的数目
-		final int eachGroupCount = vectors.length / groups.length;
+		final int eachGroupCount = vectors.size() / groups.length;
 		for (i = 0; i < groups.length; i++) {
 			for (int j = 0; j < eachGroupCount; j++) {
 				final int index = indexes[i * eachGroupCount + j];
@@ -211,7 +214,7 @@ public class KMeans {
 				belongedGroup[index] = i;
 			}
 		}
-		for (i = eachGroupCount * groups.length; i < vectors.length; i++) {
+		for (i = eachGroupCount * groups.length; i < vectors.size(); i++) {
 			final int index = indexes[i];
 			groups[groups.length - 1].addMember(index);
 			belongedGroup[index] = groups.length - 1;
@@ -249,7 +252,7 @@ public class KMeans {
 		java.util.Arrays.fill(currentChangedGroup, false);
 
 		// 划分，把每个点划分到离它最近的中心点
-		for (int i = 0; i < vectors.length; i++) {
+		for (int i = 0; i < vectors.size(); i++) {
 			LOGGER.fine("vector " + i + ".\n");
 			final double[] distance = distanceToCenter[i];
 			// 寻找最近的中心点
@@ -278,10 +281,10 @@ public class KMeans {
 			}
 		}
 		// 更新所有样本点到新中心点的距离
-		for (int i = 0; i < vectors.length; i++) {
+		for (int i = 0; i < vectors.size(); i++) {
 			for (int j = 0; j < K; j++) {
 				if (currentChangedGroup[j]) {
-					distanceToCenter[i][j] = vectors[i].distance(groups[j]
+					distanceToCenter[i][j] = vectors.get(i).distance(groups[j]
 							.getCenter());
 				}
 			}
@@ -298,17 +301,17 @@ public class KMeans {
 	 *            要选取k个初始点
 	 * @return 初始点的下标
 	 */
-	private static Set<Integer> getInitialSeedsKmeansPlusPlus(
-			final Vector[] vectors, final int k) {
+	private static ImmutableSet<Integer> getInitialSeedsKmeansPlusPlus(
+			final ImmutableList<Vector> vectors, final int k) {
 		LOGGER.fine("enter getInitialSeedsKmeansPlusPlus().\n");
 		final long startTime = System.currentTimeMillis();
 		final Set<Integer> seeds = new HashSet<Integer>(k);
 
 		// 记录每个样本的D值，种子点自己则不用计算，为0
-		final double[] d = new double[vectors.length];
+		final double[] d = new double[vectors.size()];
 		java.util.Arrays.fill(d, Double.MAX_VALUE);
 		// 随即选取第一个点
-		final int firstSeed = RANDOM.nextInt(vectors.length);
+		final int firstSeed = RANDOM.nextInt(vectors.size());
 		seeds.add(firstSeed);
 		d[firstSeed] = 0;
 
@@ -319,8 +322,8 @@ public class KMeans {
 				if (seeds.contains(j)) {
 					continue;
 				}
-				final double distance = vectors[j]
-						.distance(vectors[currentSeed]);
+				final double distance = vectors.get(j)
+						.distance(vectors.get(currentSeed));
 				if (d[j] > distance) {
 					d[j] = distance;
 				}
@@ -333,7 +336,8 @@ public class KMeans {
 		}
 		final long endTime = System.currentTimeMillis();
 		LOGGER.fine("consummed " + (endTime - startTime) / 1000 + " s.\n");
-		return seeds;
+
+		return ImmutableSet.<Integer>builder().addAll(seeds).build();
 	}
 
 	/**
@@ -343,7 +347,7 @@ public class KMeans {
 	 *            样本总数
 	 * @return 初始的中心点
 	 */
-	private static Set<Integer> getInitialSeedsRandom(final int count) {
+	private static ImmutableSet<Integer> getInitialSeedsRandom(final int count) {
 		LOGGER.fine("enter getInitialSeedsRandom().\n");
 		final long startTime = System.currentTimeMillis();
 		final int[] indexes = new int[count];
@@ -363,7 +367,8 @@ public class KMeans {
 		}
 		final long endTime = System.currentTimeMillis();
 		LOGGER.fine("consummed " + (endTime - startTime) / 1000 + " s.\n");
-		return result;
+
+		return ImmutableSet.<Integer>builder().addAll(result).build();
 	}
 
 	/**
@@ -409,8 +414,8 @@ public class KMeans {
 	 *            每个类别下的文件数目
 	 * @return NMI值
 	 */
-	public double getNMI(final String[] catagories,
-			final Map<String, Integer> classFileCount) {
+	public double getNMI(final ImmutableList<String> catagories,
+			final ImmutableMap<String, Integer> classFileCount) {
 		return getNMI(groups, catagories, classFileCount);
 	}
 
@@ -426,8 +431,8 @@ public class KMeans {
 	 * @return NMI值
 	 */
 	private static double getNMI(final Group[] groups,
-			final String[] catagories,
-			final Map<String, Integer> classFileCount) {
+			final ImmutableList<String> catagories,
+			final ImmutableMap<String, Integer> classFileCount) {
 		double ikc = 0.0; // 聚类k与类别c之间的互信息
 		double hk = 0.0; // 聚类k 的熵
 
@@ -440,7 +445,7 @@ public class KMeans {
 			final Map<String, Integer> kc = new HashMap<String, Integer>();
 			final IntArrayList keys = g.getMembers().keys();
 			for (int i = 0; i < keys.size(); i++) {
-				final String c = catagories[keys.get(i)];
+				final String c = catagories.get(keys.get(i));
 
 				final Integer count = kc.get(c);
 				if (count == null) {
@@ -455,13 +460,13 @@ public class KMeans {
 				final Integer value = entry.getValue();
 
 				ikc += ((double) value)
-						/ catagories.length
-						* Math.log(((double) catagories.length * value)
+						/ catagories.size()
+						* Math.log(((double) catagories.size() * value)
 								/ (k * classFileCount.get(c)));
 			}
 
-			hk += ((double) k) / catagories.length
-					* Math.log(catagories.length / ((double) k));
+			hk += ((double) k) / catagories.size()
+					* Math.log(catagories.size() / ((double) k));
 		}
 
 		double hc = 0.0; // 类别c的熵
@@ -471,8 +476,8 @@ public class KMeans {
 			if (c == 0) {
 				continue;
 			}
-			hc += ((double) c) / catagories.length
-					* Math.log(catagories.length / ((double) c));
+			hc += ((double) c) / catagories.size()
+					* Math.log(catagories.size() / ((double) c));
 		}
 
 		return 2 * ikc / (hc + hk);

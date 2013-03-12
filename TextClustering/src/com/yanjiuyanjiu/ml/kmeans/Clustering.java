@@ -6,8 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import com.yanjiuyanjiu.ml.vector.DenseVector;
-import com.yanjiuyanjiu.ml.vector.SparseVector;
+import com.google.common.collect.ImmutableList;
 import com.yanjiuyanjiu.ml.vector.Vector;
 
 /**
@@ -62,24 +61,21 @@ public final class Clustering {
 		// preprocessor.getOriginalNMI();
 		// System.exit(0);
 
-		final TextVector[] textVectors = preprocessor.getVectors();
-		final Vector[] vectors;
-		if (sparse) {
-			vectors = new SparseVector[textVectors.length];
-		} else {
-			vectors = new DenseVector[textVectors.length];
+		final ImmutableList<TextVector> textVectors = preprocessor.getVectors();
+		final ImmutableList.Builder<Vector> vectorBuilder =
+				ImmutableList.<Vector>builder();
+		for (int i = 0; i < textVectors.size(); i++) {
+			vectorBuilder.add(textVectors.get(i).getVector());
 		}
-		for (int i = 0; i < textVectors.length; i++) {
-			vectors[i] = textVectors[i].getVector();
-		}
-		final KMeans kmeans = new KMeans(threshold, vectors);
+		final KMeans kmeans = new KMeans(threshold, vectorBuilder.build());
 		kmeans.cluster();
 
-		final String[] catagories = new String[textVectors.length];
-		for (int i = 0; i < textVectors.length; i++) {
-			catagories[i] = textVectors[i].getCatagory();
+		final ImmutableList.Builder<String> catagoryBuilder =
+				ImmutableList.<String>builder();
+		for (int i = 0; i < textVectors.size(); i++) {
+			catagoryBuilder.add(textVectors.get(i).getCatagory());
 		}
-		LOGGER.info("NMI = " + kmeans.getNMI(catagories,
+		LOGGER.info("NMI = " + kmeans.getNMI(catagoryBuilder.build(),
 				preprocessor.getCatagoryFileCount()));
 
 		final long endTime = System.currentTimeMillis();

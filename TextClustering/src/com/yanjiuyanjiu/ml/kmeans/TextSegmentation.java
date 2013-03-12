@@ -54,16 +54,12 @@ public final class TextSegmentation {
 	 * @return 去掉停止词的新数组
 	 */
 	private static List<String> ripStopWords(final List<String> oldText) {
-		// oldText - stopWords = temp
-		final List<String> temp = new ArrayList<String>();
+		final List<String> result = new ArrayList<String>();
 		for (final String word : oldText) {
 			if (!StopWordsHandler.isStopWord(word)) { // 不是停用词
-				temp.add(word);
+				result.add(word);
 			}
 		}
-		// String[] result = new String[temp.size()];
-		// temp.toArray(result);
-		// return result;
-		return temp;
+		return result;
 	}
 }

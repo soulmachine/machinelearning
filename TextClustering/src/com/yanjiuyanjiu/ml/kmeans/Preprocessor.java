@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.yanjiuyanjiu.ml.vector.DenseVector;
 import com.yanjiuyanjiu.ml.vector.SparseVector;
 import com.yanjiuyanjiu.ml.vector.Vector;
@@ -57,11 +58,11 @@ public final class Preprocessor {
 	/** 是否用稀疏表示. */
 	private final boolean sparse;
 	/** 单词表. */
-	private Map<String, WordGlobalInfo> vocabulary = null;
+	private ImmutableMap<String, WordGlobalInfo> vocabulary = null;
 	/** 文本向量. */
-	private TextVector[] vectors = null;
+	private ImmutableList<TextVector> vectors = null;
 	/** 每个类别的文件总数, key为类别，value为该类别下的文件数目. */
-	private Map<String, Integer> catagoryFileCount;
+	private ImmutableMap<String, Integer> catagoryFileCount;
 
 	/**
 	 * 构造方法.
@@ -115,18 +116,22 @@ public final class Preprocessor {
 
 		final Map<String, FileInfo> filesInfo = getFileInfo(files);
 
-		vocabulary = extractVocabulary(filesInfo);
-		// 单词表建立后就不修改了
-		vocabulary = Collections.unmodifiableMap(vocabulary);
-		vectors = convertToVectors(filesInfo, vocabulary, sparse);
-		catagoryFileCount = calcClassFileCount(filesInfo);
+		final Map<String, WordGlobalInfo> temp1 = extractVocabulary(filesInfo);
+		vocabulary = ImmutableMap.<String, WordGlobalInfo>builder().
+				putAll(temp1).build();
+		final List<TextVector> temp2 = convertToVectors(filesInfo,
+				vocabulary, sparse);
+		vectors = ImmutableList.<TextVector>builder().addAll(temp2).build();
+		final Map<String, Integer> temp3 = calcClassFileCount(filesInfo);
+		catagoryFileCount = ImmutableMap.<String, Integer>builder().
+				putAll(temp3).build();
 	}
 
-	public TextVector[] getVectors() {
+	public ImmutableList<TextVector> getVectors() {
 		return vectors;
 	}
 
-	public Map<String, Integer> getCatagoryFileCount() {
+	public ImmutableMap<String, Integer> getCatagoryFileCount() {
 		return catagoryFileCount;
 	}
 
@@ -405,14 +410,14 @@ public final class Preprocessor {
 	 *            是否用稀疏表示
 	 * @return 文本向量
 	 */
-	private static TextVector[] convertToVectors(
+	private static List<TextVector> convertToVectors(
 			final Map<String, FileInfo> filesInfo,
 			final Map<String, WordGlobalInfo> vocabulary,
 			final boolean sparse) {
 		LOGGER.info("building " + filesInfo.size() + " files total.\n");
-		final TextVector[] textVectors = new TextVector[filesInfo.size()];
+		final List<TextVector> textVectors =
+				new ArrayList<TextVector>(filesInfo.size());
 
-		int i = 0;
 		for (final Map.Entry<String, FileInfo> entry : filesInfo.entrySet()) {
 			final String key = entry.getKey();
 			final FileInfo value = entry.getValue();
@@ -422,14 +427,10 @@ public final class Preprocessor {
 				continue;
 			}
 
-			textVectors[i++] = new TextVector(key, getCatagoryOfFile(key), v);
+			textVectors.add(new TextVector(key, getCatagoryOfFile(key), v));
 		}
 
-		// 去掉末尾的null
-		final TextVector[] result = new TextVector[i];
-		System.arraycopy(textVectors, 0, result, 0, i);
-		LOGGER.warning("discarded " + (filesInfo.size() - i) + " files.\n");
-		return result;
+		return textVectors;
 	}
 
 	/**

@@ -65,7 +65,7 @@ public interface Vector {
 	 *
 	 * @param v
 	 *            另一个向量
-	 * @return 两个文本向量之间的距离
+	 * @return 两个向量之间的距离
 	 */
 	double distance(final Vector v);
 

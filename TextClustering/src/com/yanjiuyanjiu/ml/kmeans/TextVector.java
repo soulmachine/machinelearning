@@ -4,7 +4,7 @@ import com.yanjiuyanjiu.ml.vector.Vector;
 
 /**
  * 文本向量.
- * 
+ *
  * @author soulmachine@gmail.com
  */
 public class TextVector {
@@ -12,12 +12,12 @@ public class TextVector {
 	protected final String file;
 	/** 所属类别. */
 	private final String catagory;
-	/** 向量值. */
+	/** 该文本转化成的向量. */
 	protected Vector vector;
 
 	/**
 	 * 构造函数.
-	 * 
+	 *
 	 * @param file
 	 *            文件路径
 	 * @param catagory

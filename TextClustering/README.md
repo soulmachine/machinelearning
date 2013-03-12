@@ -105,6 +105,7 @@ INFO: iteration 24 consumed 883ms, 5 points changed.
 
 三月 13, 2013 2:52:00 上午 com.yanjiuyanjiu.ml.kmeans.Clustering main
 INFO: NMI = 0.3294934636147199
+
 三月 13, 2013 2:52:00 上午 com.yanjiuyanjiu.ml.kmeans.Clustering main
 INFO: 	total time: 55s.
 

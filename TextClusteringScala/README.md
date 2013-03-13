@@ -1,5 +1,5 @@
 #A clone of [TextClustering](https://github.com/soulmachine/machinelearning/tree/master/TextClustering) written in Scala 
-
+The project is a standard Eclipse project, import it using [official scala-ide](http://scala-ide.org/)
 
 ##Usage
 TODO

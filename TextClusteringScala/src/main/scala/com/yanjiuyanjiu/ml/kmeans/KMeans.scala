@@ -55,6 +55,7 @@ class KMeans(th: Double, private val vectors: Array[Vector]) {
     for (i <- 0 until indexes.length) {
       indexes(i) = i
     }
+
     for (i <- 0 until indexes.length) {
       // i和j的内容交换
       val j = KMeans.RANDOM.nextInt(indexes.length)
@@ -119,22 +120,29 @@ class KMeans(th: Double, private val vectors: Array[Vector]) {
    * @return 本次迭代过程中，样本点的类别变动的个数
    */
   private def clusterOnce(): Int = {
+    var i = 0
+    var j = 0
     KMeans.LOGGER.fine("enter...")
     var changes = 0 // 类别发生了变动的点的个数
     // 本轮中，各组是否发生了变化
     val currentChangedGroup = Array.fill(KMeans.K)(false)
     // 划分，把每个点划分到离它最近的中心点
-    for (i <- 0 until vectors.length) {
+    i = 0
+    while(i < vectors.length) {
+    //for (i <- 0 until vectors.length) {
       KMeans.LOGGER.fine("vector " + i + ".\n");
       val distance = distanceToCenter(i)
       // 寻找最近的中心点
       var newGroup = -1
       var minDistance = Double.MaxValue
-      for (j <- 0 until groups.length) {
+      j = 0
+      while(j < groups.length) {
+      //for (j <- 0 until groups.length) {
         if (distance(j) < minDistance) {
           newGroup = j; // 样本i跑动到第j簇
           minDistance = distance(j)
         }
+        j += 1
       }
       assert(newGroup != -1)
       if (newGroup != belongedGroup(i)) {
@@ -145,20 +153,27 @@ class KMeans(th: Double, private val vectors: Array[Vector]) {
         groups(newGroup).addMember(i)
         belongedGroup(i) = newGroup
       }
+      i += 1
     }
     // 更新，每个组的中心点
-    for (i <- 0 until groups.length) {
+    i = 0
+    while(i < groups.length) {
+    //for (i <- 0 until groups.length) {
       if (currentChangedGroup(i)) {
         updateCenter(groups(i))
       }
+      i += 1
     }
     // 更新所有样本点到新中心点的距离
-    for (i <- 0 until vectors.length) {
+    i = 0
+    while(i < vectors.length) {
+    //for (i <- 0 until vectors.length) {
       for (j <- 0 until KMeans.K) {
         if (currentChangedGroup(j)) {
           distanceToCenter(i)(j) = vectors(i).distance(groups(j).center)
         }
       }
+      i += 1
     }
     changes
   }
